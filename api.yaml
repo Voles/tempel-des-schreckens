@@ -87,3 +87,34 @@ paths:
       responses:
         '200':
           description: "Successful"
+
+  /table:
+    get:
+      responses:
+        '200':
+          description: "Get the table information"
+          schema:
+            type: object
+            properties:
+              key:
+                type: string
+              rooms:
+                type: object
+                properties:
+                  playerId:
+                    type: string
+                additionalProperties:
+                  type: object
+                  properties:
+                    status:
+                      type: "string"
+                      enum: ["empty", "treasure", "trap"]
+              found:
+                type: object
+                properties:
+                  traps:
+                    type: integer
+                  treasures:
+                    type: integer
+                  empty:
+                    type: integer
