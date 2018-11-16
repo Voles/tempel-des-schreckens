@@ -1,24 +1,25 @@
-(() => {
-    const api = {
-        startGame: null,
-        joinGame: null,
-        getMyRooms: null,
-        openRoom: null,
-        getTableState: null,
+import $ from "jquery";
+// window.$ = window.jQuery = jQuery;
+
+const api = {
+    startGame: null,
+    joinGame: null,
+    getMyRooms: null,
+    openRoom: null,
+    getTableState: null,
+};
+
+window.api = api;
+
+function createStartButton() {
+    let startButton = document.createElement("button");
+    startButton.innerText = "Start game";
+
+    startButton.onclick = (event) => {
+        alert('hello world');
     };
 
-    window.api = api;
+    return startButton;
+}
 
-    function createStartButton() {
-        let startButton = document.createElement("button");
-        startButton.innerText = "Start game";
-
-        startButton.onclick = (event) => {
-
-        };
-
-        return startButton;
-    }
-
-    document.body.appendChild(createStartButton());
-})();
+document.body.appendChild(createStartButton());
