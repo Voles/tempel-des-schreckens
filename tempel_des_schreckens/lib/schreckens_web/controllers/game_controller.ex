@@ -9,7 +9,8 @@ defmodule Schreckens.Game do
     {:ok,
      %{
        playerCount: playerCount,
-       remaining_cards: starting_roles(playerCount) |> Enum.shuffle()
+       remaining_cards: starting_roles(playerCount) |> Enum.shuffle(),
+       joined_players: %{}
      }}
   end
 
@@ -17,15 +18,26 @@ defmodule Schreckens.Game do
     GenServer.call(__MODULE__, {:join_state, secret_token})
   end
 
-  def handle_call({:join_state, _secret_token}, _from, state) do
-    [role | remaining] = state.remaining_cards
+  def handle_call({:join_state, secret_token}, _from, state) do
+    case Map.has_key?(state.joined_players, secret_token) do
+      true ->
+        {:reply, :error, state}
 
-    reply = %{
-      playerIds: 1..state.playerCount |> Enum.to_list(),
-      guardian: role == :guardian
-    }
+      false ->
+        [role | remaining] = state.remaining_cards
 
-    {:reply, reply, %{state | remaining_cards: remaining}}
+        is_guardian = role == :guardian
+
+        reply = %{
+          playerIds: 1..state.playerCount |> Enum.to_list(),
+          guardian: is_guardian
+        }
+
+        joined_players = Map.put(state.joined_players, secret_token, "")
+
+        {:reply, {:ok, reply},
+         %{state | remaining_cards: remaining, joined_players: joined_players}}
+    end
   end
 
   defp starting_roles(3), do: [:guardian, :guardian, :adventurer, :adventurer]
@@ -47,8 +59,10 @@ defmodule SchreckensWeb.GameController do
   def join(conn, %{"secretToken" => secretToken}) when is_binary(secretToken) do
     case Process.whereis(Game) do
       pid when is_pid(pid) ->
-        join_state = Game.join_state(secretToken)
-        json(conn, join_state)
+        case Game.join_state(secretToken) do
+          {:ok, join_state} -> json(conn, join_state)
+          :error -> error(conn)
+        end
 
       _ ->
         error(conn)

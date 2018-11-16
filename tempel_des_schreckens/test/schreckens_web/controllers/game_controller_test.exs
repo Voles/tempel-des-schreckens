@@ -48,4 +48,14 @@ defmodule SchreckensWeb.GameControllerTest do
 
     assert nb_of_guardians == 1 || nb_of_guardians == 2
   end
+
+  test "POST /join rejoin results in an error", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+
+    response1 = post(conn, "/join", %{secretToken: "1"})
+    response2 = post(conn, "/join", %{secretToken: "1"})
+
+    %{} = json_response(response1, 200)
+    "error" = json_response(response2, 400)
+  end
 end
