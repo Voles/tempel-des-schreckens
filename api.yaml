@@ -70,4 +70,20 @@ paths:
                   type: "string"
                   enum: ["empty", "treasure", "trap"]
 
-
+  /open:
+    post:
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Join a room"
+        required: true
+        schema:
+          type: object
+          properties:
+            secretToken:
+              type: string
+            targetPlayerId:
+              type: integer
+      responses:
+        '200':
+          description: "Successful"
