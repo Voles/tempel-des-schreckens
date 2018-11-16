@@ -28,6 +28,10 @@ defmodule Schreckens.Game do
     GenServer.call(__MODULE__, :table)
   end
 
+  def open(secret_token, target_player_id) do
+    GenServer.call(__MODULE__, {:open, secret_token, target_player_id})
+  end
+
   def handle_call({:join_state, secret_token}, _from, state) do
     cond do
       Enum.count(Map.keys(state.joined_players)) == state.player_count ->
@@ -100,6 +104,10 @@ defmodule Schreckens.Game do
     end
   end
 
+  def handle_call({:open, secret_token, target_player_id}, _from, state) do
+    {:reply, :ok, state}
+  end
+
   defp starting_roles(3), do: [:guardian, :guardian, :adventurer, :adventurer]
 
   defp starting_rooms(3),
@@ -166,7 +174,16 @@ defmodule SchreckensWeb.GameController do
   end
 
   def open(conn, %{"secretToken" => secret_token, "targetPlayerId" => target_player_id}) do
-    error(conn)
+    case Process.whereis(Game) do
+      pid when is_pid(pid) ->
+        case Game.open(secret_token, target_player_id) do
+          :ok -> json(conn, "ok")
+          :error -> error(conn)
+        end
+
+      _ ->
+        error(conn)
+    end
   end
 
   def open(conn, _params), do: error(conn)
