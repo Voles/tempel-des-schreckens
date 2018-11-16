@@ -12,5 +12,6 @@ defmodule SchreckensWeb.Router do
     post "/join", GameController, :join
     get "/my-rooms/:secret_token", GameController, :my_rooms
     get "/table", GameController, :table
+    post "/open", GameController, :open
   end
 end

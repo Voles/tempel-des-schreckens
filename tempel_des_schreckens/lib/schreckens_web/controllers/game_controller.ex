@@ -165,6 +165,12 @@ defmodule SchreckensWeb.GameController do
     end
   end
 
+  def open(conn, %{"secretToken" => secret_token, "targetPlayerId" => target_player_id}) do
+    error(conn)
+  end
+
+  def open(conn, _params), do: error(conn)
+
   defp error(conn, status \\ 400) do
     conn
     |> put_status(status)
