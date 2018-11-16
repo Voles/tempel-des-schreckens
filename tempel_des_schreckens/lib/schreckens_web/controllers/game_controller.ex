@@ -10,12 +10,17 @@ defmodule Schreckens.Game do
      %{
        player_count: player_count,
        remaining_cards: starting_roles(player_count) |> Enum.shuffle(),
+       remaining_rooms: starting_rooms(player_count) |> Enum.shuffle(),
        joined_players: %{}
      }}
   end
 
   def join_state(secret_token) do
     GenServer.call(__MODULE__, {:join_state, secret_token})
+  end
+
+  def rooms_for(secret_token) do
+    GenServer.call(__MODULE__, {:rooms_for, secret_token})
   end
 
   def handle_call({:join_state, secret_token}, _from, state) do
@@ -43,7 +48,18 @@ defmodule Schreckens.Game do
     end
   end
 
+  def handle_call({:rooms_for, _secret_token}, _from, state) do
+    {rooms, remaining_rooms} = Enum.split(state.remaining_rooms, 5)
+
+    {:reply, {:ok, rooms}, %{state | remaining_rooms: remaining_rooms}}
+  end
+
   defp starting_roles(3), do: [:guardian, :guardian, :adventurer, :adventurer]
+
+  defp starting_rooms(3),
+    do:
+      [for(_ <- 1..8, do: :empty), for(_ <- 1..5, do: :treasure), for(_ <- 1..2, do: :trap)]
+      |> Enum.flat_map(& &1)
 end
 
 defmodule SchreckensWeb.GameController do
@@ -74,6 +90,19 @@ defmodule SchreckensWeb.GameController do
   end
 
   def join(conn, _param), do: error(conn)
+
+  def my_rooms(conn, %{"secret_token" => secret_token}) when is_binary(secret_token) do
+    case Process.whereis(Game) do
+      pid when is_pid(pid) ->
+        {:ok, rooms} = Game.rooms_for(secret_token)
+        json(conn, %{rooms: rooms})
+
+      _ ->
+        error(conn)
+    end
+  end
+
+  def my_rooms(conn, _params), do: error(conn)
 
   defp error(conn) do
     conn

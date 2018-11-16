@@ -10,5 +10,6 @@ defmodule SchreckensWeb.Router do
 
     post "/start", GameController, :start
     post "/join", GameController, :join
+    get "/my-rooms/:secret_token", GameController, :my_rooms
   end
 end

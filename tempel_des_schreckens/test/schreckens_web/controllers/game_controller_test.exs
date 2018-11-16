@@ -69,4 +69,14 @@ defmodule SchreckensWeb.GameControllerTest do
 
     "error" = json_response(response, 400)
   end
+
+  test "GET /my-rooms returns 5 rooms", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+
+    post(conn, "/join", %{secretToken: "my-secret"})
+    response = get(conn, "/my-rooms/my-secret")
+
+    assert %{"rooms" => rooms} = json_response(response, 200)
+    assert Enum.count(rooms) == 5
+  end
 end
