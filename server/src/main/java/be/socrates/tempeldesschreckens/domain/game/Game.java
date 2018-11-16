@@ -17,10 +17,35 @@ public class Game {
 
     private PlayerIds playerIds = new PlayerIds();
     private List<Room> rooms;
+    private List<Role> roles;
     private Integer playerCount;
+    private List<Player> players;
 
     private Game(final int playerCount) {
         this.playerCount = playerCount;
+        initializeRooms();
+        initializeRoles();
+        initializePlayers();
+    }
+
+    private void initializePlayers() {
+        final PlayerIds playerIds = new PlayerIds();
+        Collections.shuffle(roles);
+        roles.subList(0, playerCount)
+                .stream()
+                .map(role -> player().withRole(role).withPlayerId(playerIds.next()).build());
+        players = new ArrayList<>();
+    }
+
+    private void initializeRoles() {
+        roles = new ArrayList<>();
+        final List<Role> adventurers = Collections.nCopies(2, Role.ADVENTURER);
+        final List<Role> guardians = Collections.nCopies(2, Role.GUARDIAN);
+        roles.addAll(adventurers);
+        roles.addAll(guardians);
+    }
+
+    private void initializeRooms() {
         final List<Room> emptyRooms = Collections.nCopies(8, Room.EMPTY);
         final List<Room> treasureRooms = Collections.nCopies(5, Room.TREASURE);
         final List<Room> trapRooms = Collections.nCopies(2, Room.TRAP);
@@ -45,8 +70,12 @@ public class Game {
         return Role.ADVENTURER;
     }
 
-    public List<Room> rooms() {
+    List<Room> rooms() {
         return rooms;
+    }
+
+    List<Role> getRoles() {
+        return roles;
     }
 
     public Player newPlayer(final String playerName) {
@@ -61,4 +90,7 @@ public class Game {
         return playerIds.next();
     }
 
+    public List<Player> getPlayers() {
+        return players;
+    }
 }
