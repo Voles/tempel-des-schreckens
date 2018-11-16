@@ -120,6 +120,12 @@ defmodule SchreckensWeb.GameController do
 
   def my_rooms(conn, _params), do: error(conn)
 
+  def table(conn, _params) do
+    conn
+    |> put_status(404)
+    |> json("error")
+  end
+
   defp error(conn) do
     conn
     |> put_status(400)

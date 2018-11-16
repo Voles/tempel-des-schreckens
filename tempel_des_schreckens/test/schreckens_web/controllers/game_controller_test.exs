@@ -121,4 +121,22 @@ defmodule SchreckensWeb.GameControllerTest do
     assert %{"rooms" => rooms} = json_response(response1, 200)
     assert %{"rooms" => ^rooms} = json_response(response2, 200)
   end
+
+  test "GET /table before all players have joined", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+    response = get(conn, "/table")
+
+    json_response(response, 404)
+  end
+
+  # test "GET /table before any action", %{conn: conn} do
+  #   conn = post(conn, "/start", %{playerCount: 3})
+  #   post(conn, "/join", %{secretToken: "my-secret"})
+  #
+  #   response1 = get(conn, "/my-rooms/my-secret")
+  #   response2 = get(conn, "/my-rooms/my-secret")
+  #
+  #   assert %{"rooms" => rooms} = json_response(response1, 200)
+  #   assert %{"rooms" => ^rooms} = json_response(response2, 200)
+  # end
 end
