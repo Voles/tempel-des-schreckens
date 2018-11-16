@@ -1,0 +1,27 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Tempel des Schreckens API"
+host: "petstore.swagger.io"
+basePath: "/v2"
+
+schemes:
+- "https"
+- "http"
+
+paths:
+  /start:
+    post:
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Start a Tempel des Schreckens game"
+        required: true
+        schema:
+          type: object
+          properties:
+            amountOfPlayers:
+              type: integer
+      responses:
+        '200':
+          description: Created
