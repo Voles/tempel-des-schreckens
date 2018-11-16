@@ -30,7 +30,8 @@
   "/open": {
     "type": "post",
     "request": {
-      "playerId": "int"
+      "secretToken": "string"
+      "targetPlayerId": "int"
     },
     "response": {
       "message": "OK" / "ERROR"
