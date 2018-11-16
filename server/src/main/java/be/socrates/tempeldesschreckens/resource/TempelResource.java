@@ -1,7 +1,6 @@
 package be.socrates.tempeldesschreckens.resource;
 
 import be.socrates.tempeldesschreckens.domain.game.Game;
-import be.socrates.tempeldesschreckens.domain.game.GameId;
 import be.socrates.tempeldesschreckens.domain.player.Player;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,15 +8,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class TempelResource {
 
-    private final Game game;
+    private Game game;
 
     public TempelResource() {
-        this.game = new Game();
     }
 
     @PostMapping("/start")
-    public ResponseEntity<GameId> start(@RequestBody StartInput playerCount) {
-        return ResponseEntity.ok(game.newGame(playerCount.getPlayerCount()));
+    public ResponseEntity start(@RequestBody StartInput playerCount) {
+        game = Game.newGame(playerCount.getPlayerCount());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/join")

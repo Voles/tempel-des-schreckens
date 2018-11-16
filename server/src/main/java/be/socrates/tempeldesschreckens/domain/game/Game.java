@@ -4,32 +4,55 @@ import be.socrates.tempeldesschreckens.domain.Room;
 import be.socrates.tempeldesschreckens.domain.player.Player;
 import be.socrates.tempeldesschreckens.domain.player.PlayerId;
 import be.socrates.tempeldesschreckens.domain.player.Role;
-import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static be.socrates.tempeldesschreckens.domain.player.Player.PlayerBuilder.player;
 
-@Component
 public class Game {
 
     private PlayerIds playerIds = new PlayerIds();
-    private Cards cards = new Cards();
+    private List<Room> rooms;
     private Integer playerCount;
+
+    private Game(final int playerCount) {
+        this.playerCount = playerCount;
+        final List<Room> emptyRooms = Collections.nCopies(8, Room.EMPTY);
+        final List<Room> treasureRooms = Collections.nCopies(5, Room.TREASURE);
+        final List<Room> trapRooms = Collections.nCopies(2, Room.TRAP);
+        rooms = new ArrayList<>();
+        rooms.addAll(emptyRooms);
+        rooms.addAll(treasureRooms);
+        rooms.addAll(trapRooms);
+    }
+
+    public static Game newGame(final int playerCount) {
+        validatePlayerCount(playerCount);
+        return new Game(playerCount);
+    }
+
+    private static void validatePlayerCount(final int playerCount) {
+        if (playerCount > 10){
+            throw new IllegalArgumentException("Tempel des Schreckens can only be played with max. 10 players");
+        }
+    }
 
     public Role randomRole() {
         return Role.ADVENTURER;
     }
 
-    public List<Room> cards() {
-        return Arrays.asList();
+    public List<Room> rooms() {
+        return rooms;
     }
 
     public Player newPlayer(final String playerName) {
         return player()
                 .withPlayerId(nextPlayerId())
-                .withCards(cards())
+                .withCards(rooms())
                 .withRole(randomRole())
                 .build();
     }
@@ -38,8 +61,4 @@ public class Game {
         return playerIds.next();
     }
 
-    public GameId newGame(final Integer playerCount) {
-        this.playerCount = playerCount;
-        return GameId.gameId();
-    }
 }
