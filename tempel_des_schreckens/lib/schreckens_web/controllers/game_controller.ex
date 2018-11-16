@@ -33,6 +33,7 @@ defmodule Schreckens.Game do
 
       true ->
         [role | remaining] = state.remaining_cards
+        {rooms, remaining_rooms} = Enum.split(state.remaining_rooms, 5)
 
         is_guardian = role == :guardian
 
@@ -41,21 +42,27 @@ defmodule Schreckens.Game do
           guardian: is_guardian
         }
 
-        joined_players = Map.put(state.joined_players, secret_token, "")
+        joined_players =
+          Map.put(state.joined_players, secret_token, %{
+            rooms: rooms
+          })
 
         {:reply, {:ok, reply},
-         %{state | remaining_cards: remaining, joined_players: joined_players}}
+         %{
+           state
+           | remaining_cards: remaining,
+             joined_players: joined_players,
+             remaining_rooms: remaining_rooms
+         }}
     end
   end
 
   def handle_call({:rooms_for, secret_token}, _from, state) do
-    cond do
-      Map.has_key?(state.joined_players, secret_token) ->
-        {rooms, remaining_rooms} = Enum.split(state.remaining_rooms, 5)
+    case Map.get(state.joined_players, secret_token) do
+      %{rooms: rooms} ->
+        {:reply, {:ok, rooms}, state}
 
-        {:reply, {:ok, rooms}, %{state | remaining_rooms: remaining_rooms}}
-
-      true ->
+      nil ->
         {:reply, :error, state}
     end
   end

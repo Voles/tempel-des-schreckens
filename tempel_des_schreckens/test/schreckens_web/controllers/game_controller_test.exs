@@ -87,4 +87,15 @@ defmodule SchreckensWeb.GameControllerTest do
 
     assert "error" = json_response(response, 400)
   end
+
+  test "GET /my-rooms is idempotent", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+    post(conn, "/join", %{secretToken: "my-secret"})
+
+    response1 = get(conn, "/my-rooms/my-secret")
+    response2 = get(conn, "/my-rooms/my-secret")
+
+    assert %{"rooms" => rooms} = json_response(response1, 200)
+    assert %{"rooms" => ^rooms} = json_response(response2, 200)
+  end
 end
