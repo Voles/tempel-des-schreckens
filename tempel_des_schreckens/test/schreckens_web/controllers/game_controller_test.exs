@@ -129,14 +129,26 @@ defmodule SchreckensWeb.GameControllerTest do
     json_response(response, 404)
   end
 
-  # test "GET /table before any action", %{conn: conn} do
-  #   conn = post(conn, "/start", %{playerCount: 3})
-  #   post(conn, "/join", %{secretToken: "my-secret"})
-  #
-  #   response1 = get(conn, "/my-rooms/my-secret")
-  #   response2 = get(conn, "/my-rooms/my-secret")
-  #
-  #   assert %{"rooms" => rooms} = json_response(response1, 200)
-  #   assert %{"rooms" => ^rooms} = json_response(response2, 200)
-  # end
+  test "GET /table before any action", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+    post(conn, "/join", %{secretToken: "1"})
+    post(conn, "/join", %{secretToken: "2"})
+    post(conn, "/join", %{secretToken: "3"})
+
+    response = get(conn, "/table")
+
+    assert %{
+             "key" => 1,
+             "rooms" => %{
+               "1" => ["closed", "closed", "closed", "closed", "closed"],
+               "2" => ["closed", "closed", "closed", "closed", "closed"],
+               "3" => ["closed", "closed", "closed", "closed", "closed"]
+             },
+             "found" => %{
+               "traps" => 0,
+               "treasure" => 0,
+               "empty" => 0
+             }
+           } = json_response(response, 200)
+  end
 end

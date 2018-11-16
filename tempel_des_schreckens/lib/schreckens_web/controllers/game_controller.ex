@@ -23,6 +23,10 @@ defmodule Schreckens.Game do
     GenServer.call(__MODULE__, {:rooms_for, secret_token})
   end
 
+  def table() do
+    GenServer.call(__MODULE__, :table)
+  end
+
   def handle_call({:join_state, secret_token}, _from, state) do
     cond do
       Enum.count(Map.keys(state.joined_players)) == state.player_count ->
@@ -64,6 +68,30 @@ defmodule Schreckens.Game do
         {:reply, {:ok, rooms}, state}
 
       nil ->
+        {:reply, :error, state}
+    end
+  end
+
+  def handle_call(:table, _from, state) do
+    cond do
+      Enum.count(Map.keys(state.joined_players)) == state.player_count ->
+        table = %{
+          key: 1,
+          rooms: %{
+            1 => ["closed", "closed", "closed", "closed", "closed"],
+            2 => ["closed", "closed", "closed", "closed", "closed"],
+            3 => ["closed", "closed", "closed", "closed", "closed"]
+          },
+          found: %{
+            traps: 0,
+            treasure: 0,
+            empty: 0
+          }
+        }
+
+        {:reply, {:ok, table}, state}
+
+      true ->
         {:reply, :error, state}
     end
   end
@@ -121,14 +149,21 @@ defmodule SchreckensWeb.GameController do
   def my_rooms(conn, _params), do: error(conn)
 
   def table(conn, _params) do
-    conn
-    |> put_status(404)
-    |> json("error")
+    case Process.whereis(Game) do
+      pid when is_pid(pid) ->
+        case Game.table() do
+          {:ok, table} -> json(conn, table)
+          :error -> error(conn, 404)
+        end
+
+      _ ->
+        error(conn, 404)
+    end
   end
 
-  defp error(conn) do
+  defp error(conn, status \\ 400) do
     conn
-    |> put_status(400)
+    |> put_status(status)
     |> json("error")
   end
 end
