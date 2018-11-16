@@ -5,11 +5,11 @@ defmodule Schreckens.Game do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  def init(playerCount: playerCount) do
+  def init(player_count: player_count) do
     {:ok,
      %{
-       playerCount: playerCount,
-       remaining_cards: starting_roles(playerCount) |> Enum.shuffle(),
+       player_count: player_count,
+       remaining_cards: starting_roles(player_count) |> Enum.shuffle(),
        joined_players: %{}
      }}
   end
@@ -20,7 +20,7 @@ defmodule Schreckens.Game do
 
   def handle_call({:join_state, secret_token}, _from, state) do
     cond do
-      Enum.count(Map.keys(state.joined_players)) == state.playerCount ->
+      Enum.count(Map.keys(state.joined_players)) == state.player_count ->
         {:reply, :error, state}
 
       Map.has_key?(state.joined_players, secret_token) ->
@@ -32,7 +32,7 @@ defmodule Schreckens.Game do
         is_guardian = role == :guardian
 
         reply = %{
-          playerIds: 1..state.playerCount |> Enum.to_list(),
+          playerIds: 1..state.player_count |> Enum.to_list(),
           guardian: is_guardian
         }
 
@@ -51,18 +51,19 @@ defmodule SchreckensWeb.GameController do
 
   alias Schreckens.Game
 
-  def start(conn, %{"playerCount" => playerCount}) when playerCount >= 3 and playerCount <= 10 do
-    {:ok, _pid} = Game.start_link(playerCount: playerCount)
+  def start(conn, %{"playerCount" => player_count})
+      when player_count >= 3 and player_count <= 10 do
+    {:ok, _pid} = Game.start_link(player_count: player_count)
 
     json(conn, "ok")
   end
 
   def start(conn, _param), do: error(conn)
 
-  def join(conn, %{"secretToken" => secretToken}) when is_binary(secretToken) do
+  def join(conn, %{"secretToken" => secret_token}) when is_binary(secret_token) do
     case Process.whereis(Game) do
       pid when is_pid(pid) ->
-        case Game.join_state(secretToken) do
+        case Game.join_state(secret_token) do
           {:ok, join_state} -> json(conn, join_state)
           :error -> error(conn)
         end
