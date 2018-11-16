@@ -8,7 +8,8 @@ defmodule Schreckens.Game do
   def init(playerCount: playerCount) do
     {:ok,
      %{
-       playerCount: playerCount
+       playerCount: playerCount,
+       remaining_cards: starting_roles(playerCount) |> Enum.shuffle()
      }}
   end
 
@@ -16,14 +17,18 @@ defmodule Schreckens.Game do
     GenServer.call(__MODULE__, {:join_state, secret_token})
   end
 
-  def handle_call({:join_state, secret_token}, _from, state) do
+  def handle_call({:join_state, _secret_token}, _from, state) do
+    [role | remaining] = state.remaining_cards
+
     reply = %{
       playerIds: 1..state.playerCount |> Enum.to_list(),
-      guardian: false
+      guardian: role == :guardian
     }
 
-    {:reply, reply, state}
+    {:reply, reply, %{state | remaining_cards: remaining}}
   end
+
+  defp starting_roles(3), do: [:guardian, :guardian, :adventurer, :adventurer]
 end
 
 defmodule SchreckensWeb.GameController do

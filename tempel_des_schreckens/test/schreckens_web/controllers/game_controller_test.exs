@@ -27,4 +27,25 @@ defmodule SchreckensWeb.GameControllerTest do
 
     assert is_boolean(guardian)
   end
+
+  test "POST /join 3 players should have a correct amount of guardians", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+    response1 = post(conn, "/join", %{secretToken: "1"})
+    response2 = post(conn, "/join", %{secretToken: "2"})
+    response3 = post(conn, "/join", %{secretToken: "3"})
+
+    %{"guardian" => guardian1} = json_response(response1, 200)
+    %{"guardian" => guardian2} = json_response(response2, 200)
+    %{"guardian" => guardian3} = json_response(response3, 200)
+
+    nb_of_guardians =
+      [guardian1, guardian2, guardian3]
+      |> Enum.filter(fn
+        true -> true
+        false -> false
+      end)
+      |> Enum.count()
+
+    assert nb_of_guardians == 1 || nb_of_guardians == 2
+  end
 end
