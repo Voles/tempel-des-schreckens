@@ -17,7 +17,8 @@
     "response": {
       "guardian": bool,
       key: bool,
-      playerIds: [  ]
+      playerIds: [  ],
+      id: int
     }
   },
 

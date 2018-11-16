@@ -9,6 +9,7 @@ defmodule Schreckens.Game do
     {:ok,
      %{
        player_count: player_count,
+       remaining_ids: 1..player_count |> Enum.to_list(),
        remaining_cards: starting_roles(player_count) |> Enum.shuffle(),
        remaining_rooms: starting_rooms(player_count) |> Enum.shuffle(),
        joined_players: %{}
@@ -37,6 +38,7 @@ defmodule Schreckens.Game do
 
       true ->
         [role | remaining] = state.remaining_cards
+        [id | remaining_ids] = state.remaining_ids
         {rooms, remaining_rooms} = Enum.split(state.remaining_rooms, 5)
 
         is_guardian = role == :guardian
@@ -44,7 +46,8 @@ defmodule Schreckens.Game do
         reply = %{
           playerIds: 1..state.player_count |> Enum.to_list(),
           guardian: is_guardian,
-          key: Enum.count(Map.keys(state.joined_players)) == 0
+          key: Enum.count(Map.keys(state.joined_players)) == 0,
+          id: id
         }
 
         joined_players =
@@ -57,7 +60,8 @@ defmodule Schreckens.Game do
            state
            | remaining_cards: remaining,
              joined_players: joined_players,
-             remaining_rooms: remaining_rooms
+             remaining_rooms: remaining_rooms,
+             remaining_ids: remaining_ids
          }}
     end
   end
