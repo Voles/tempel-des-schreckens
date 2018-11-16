@@ -44,7 +44,7 @@ public class PlayerIdsTest {
     }
 
     @Test
-    public void next_8PlayersConsumed_ThrowsException() {
+    public void next_10PlayersConsumed_ThrowsException() {
         final PlayerIds playerIds = new PlayerIds();
         playerIds.next();
         playerIds.next();
