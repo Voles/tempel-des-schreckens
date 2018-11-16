@@ -48,10 +48,16 @@ defmodule Schreckens.Game do
     end
   end
 
-  def handle_call({:rooms_for, _secret_token}, _from, state) do
-    {rooms, remaining_rooms} = Enum.split(state.remaining_rooms, 5)
+  def handle_call({:rooms_for, secret_token}, _from, state) do
+    cond do
+      Map.has_key?(state.joined_players, secret_token) ->
+        {rooms, remaining_rooms} = Enum.split(state.remaining_rooms, 5)
 
-    {:reply, {:ok, rooms}, %{state | remaining_rooms: remaining_rooms}}
+        {:reply, {:ok, rooms}, %{state | remaining_rooms: remaining_rooms}}
+
+      true ->
+        {:reply, :error, state}
+    end
   end
 
   defp starting_roles(3), do: [:guardian, :guardian, :adventurer, :adventurer]
@@ -94,8 +100,10 @@ defmodule SchreckensWeb.GameController do
   def my_rooms(conn, %{"secret_token" => secret_token}) when is_binary(secret_token) do
     case Process.whereis(Game) do
       pid when is_pid(pid) ->
-        {:ok, rooms} = Game.rooms_for(secret_token)
-        json(conn, %{rooms: rooms})
+        case Game.rooms_for(secret_token) do
+          {:ok, rooms} -> json(conn, %{rooms: rooms})
+          :error -> error(conn)
+        end
 
       _ ->
         error(conn)
