@@ -21,7 +21,10 @@ class PlayerIds {
                 playerId(5),
                 playerId(6),
                 playerId(7),
-                playerId(8)));
+                playerId(8),
+                playerId(9),
+                playerId(10)
+                ));
     }
 
     Queue<PlayerId> asList() {

@@ -20,7 +20,9 @@ public class PlayerIdsTest {
                         playerId(5),
                         playerId(6),
                         playerId(7),
-                        playerId(8)
+                        playerId(8),
+                        playerId(9),
+                        playerId(10)
                         );
     }
 
@@ -51,7 +53,9 @@ public class PlayerIdsTest {
         playerIds.next();
         playerIds.next();
         playerIds.next();
-        playerIds.next(); //returns 8th and last player
+        playerIds.next();
+        playerIds.next();
+        playerIds.next(); //returns 10th and last player
 
         assertThatThrownBy(playerIds::next).isInstanceOf(RuntimeException.class);
     }
