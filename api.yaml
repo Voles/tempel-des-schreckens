@@ -50,3 +50,24 @@ paths:
                 type: array
                 items:
                   type: "string"
+
+  /my-rooms/{secretToken}:
+    get:
+      parameters:
+      - in: "path"
+        name: secretToken
+        type: string
+        required: true
+      responses:
+        '200':
+          description: "Get your rooms"
+          schema:
+            type: object
+            properties:
+              rooms:
+                type: array
+                items:
+                  type: "string"
+                  enum: ["empty", "treasure", "trap"]
+
+
