@@ -1,0 +1,60 @@
+{
+  "/start": {
+    "type": "post",
+    "request": {
+      "playerCount": (3 - 10)
+    },
+    "response": {
+      "message": "OK" / "ERROR"
+    }
+  },
+
+  "/join": {
+    "type": "post",
+    "request": {
+      "secretToken": "string"
+    },
+    "response": {
+      "guardian": bool,
+      playerIds: [  ]
+    }
+  },
+
+  "/my-rooms/<secretToken>": {
+    "type": "get",
+    "response": {
+      "rooms": [] // (empty / treasure / trap)
+    }
+  },
+
+  "/open": {
+    "type": "post",
+    "request": {
+      "playerId": "int"
+    },
+    "response": {
+      "message": "OK" / "ERROR"
+    }
+  },
+
+  "/table": {
+    "type": "get",
+    "response": {
+      "key": "playerId",
+      "rooms": {
+        <playerId>: [
+          <room:closed>,
+          <room:closed>,
+          <room:empty>,
+          <room:treasure>,
+          <room:trap>,
+        ]
+      },
+      "found": {
+        traps: <amount>,
+        treasures: <amount>,
+        empty: <amount>
+      }
+    }
+  }
+}
