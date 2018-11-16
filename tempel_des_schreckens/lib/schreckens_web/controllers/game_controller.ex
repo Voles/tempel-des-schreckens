@@ -19,11 +19,14 @@ defmodule Schreckens.Game do
   end
 
   def handle_call({:join_state, secret_token}, _from, state) do
-    case Map.has_key?(state.joined_players, secret_token) do
-      true ->
+    cond do
+      Enum.count(Map.keys(state.joined_players)) == state.playerCount ->
         {:reply, :error, state}
 
-      false ->
+      Map.has_key?(state.joined_players, secret_token) ->
+        {:reply, :error, state}
+
+      true ->
         [role | remaining] = state.remaining_cards
 
         is_guardian = role == :guardian

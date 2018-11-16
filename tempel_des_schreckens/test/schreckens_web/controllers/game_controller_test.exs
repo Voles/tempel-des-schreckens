@@ -58,4 +58,15 @@ defmodule SchreckensWeb.GameControllerTest do
     %{} = json_response(response1, 200)
     "error" = json_response(response2, 400)
   end
+
+  test "POST /join 4th join results in an error", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+
+    post(conn, "/join", %{secretToken: "1"})
+    post(conn, "/join", %{secretToken: "2"})
+    post(conn, "/join", %{secretToken: "3"})
+    response = post(conn, "/join", %{secretToken: "4"})
+
+    "error" = json_response(response, 400)
+  end
 end
