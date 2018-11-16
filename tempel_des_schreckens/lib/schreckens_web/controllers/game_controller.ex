@@ -39,7 +39,8 @@ defmodule Schreckens.Game do
 
         reply = %{
           playerIds: 1..state.player_count |> Enum.to_list(),
-          guardian: is_guardian
+          guardian: is_guardian,
+          key: Enum.count(Map.keys(state.joined_players)) == 0
         }
 
         joined_players =
