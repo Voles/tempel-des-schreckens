@@ -1,8 +1,8 @@
-import $ from "jquery";
+import {startGame} from "./StartGame";
 // window.$ = window.jQuery = jQuery;
 
 const api = {
-    startGame: null,
+    startGame: startGame,
     joinGame: null,
     getMyRooms: null,
     openRoom: null,
@@ -16,7 +16,7 @@ function createStartButton() {
     startButton.innerText = "Start game";
 
     startButton.onclick = (event) => {
-        alert('hello world');
+        startGame();
     };
 
     return startButton;
