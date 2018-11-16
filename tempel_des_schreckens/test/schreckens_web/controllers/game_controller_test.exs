@@ -10,4 +10,9 @@ defmodule SchreckensWeb.GameControllerTest do
     conn = post(conn, "/start", %{playerCount: 11})
     assert "error" = json_response(conn, 400)
   end
+
+  test "POST /join without a started game", %{conn: conn} do
+    conn = post(conn, "/join", %{secretToken: "some_secret"})
+    assert "error" = json_response(conn, 400)
+  end
 end
