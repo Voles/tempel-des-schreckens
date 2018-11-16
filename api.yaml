@@ -25,3 +25,28 @@ paths:
       responses:
         '200':
           description: Created
+
+  /join:
+    post:
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Join a room"
+        required: true
+        schema:
+          type: object
+          properties:
+            secretToken:
+              type: string
+      responses:
+        '200':
+          description: "Successful"
+          schema:
+            type: object
+            properties:
+              guardian:
+                type: boolean
+              playerIds:
+                type: array
+                items:
+                  type: "string"
