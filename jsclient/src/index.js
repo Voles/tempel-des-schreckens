@@ -1,4 +1,5 @@
-import {startGame} from "./StartGame";
+// import $ from "jquery";
+import { startGame } from "./StartGame";
 // window.$ = window.jQuery = jQuery;
 
 const api = {

@@ -1,8 +1,14 @@
 {
-  "start": {"status": "ok"},
-
+  "start": {
+    "playerCount": "4"
+  },
   "join": {
     "guardian": false,
-    "playerIds": [ "1", "2", "3", "4" ]
+    "playerIds": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ]
   }
-} 
+}
