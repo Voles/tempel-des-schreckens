@@ -16,8 +16,8 @@ defmodule SchreckensWeb.GameController do
 
   def join(conn, %{"secretToken" => secret_token}) when is_binary(secret_token) do
     with {:ok, _game} <- find_game() do
-      case Game.join_state(secret_token) do
-        {:ok, join_state} -> json(conn, join_state)
+      case Game.join(secret_token) do
+        {:ok, player_state} -> json(conn, player_state)
         :error -> error(conn)
       end
     end

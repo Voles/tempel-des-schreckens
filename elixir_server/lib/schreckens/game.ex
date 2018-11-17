@@ -7,8 +7,8 @@ defmodule Schreckens.Game do
 
   # PUBLIC API
 
-  def join_state(secret_token) do
-    GenServer.call(__MODULE__, {:join_state, secret_token})
+  def join(secret_token) do
+    GenServer.call(__MODULE__, {:join, secret_token})
   end
 
   def rooms_for(secret_token) do
@@ -33,18 +33,18 @@ defmodule Schreckens.Game do
        remaining_ids: 1..player_count |> Enum.to_list(),
        remaining_roles: shuffle_starting_roles(player_count),
        remaining_rooms: shuffle_starting_rooms(player_count),
-       joined_players: %{},
+       table_state: %{},
        player_id_with_key: 1
      }}
   end
 
   @impl true
-  def handle_call({:join_state, secret_token}, _from, state) do
+  def handle_call({:join, secret_token}, _from, state) do
     cond do
       all_players_joined?(state) ->
         {:reply, :error, state}
 
-      Map.has_key?(state.joined_players, secret_token) ->
+      Map.has_key?(state.table_state, secret_token) ->
         {:reply, :error, state}
 
       true ->
@@ -57,22 +57,21 @@ defmodule Schreckens.Game do
         reply = %{
           playerIds: 1..state.player_count |> Enum.to_list(),
           guardian: is_guardian,
-          key: number_of_joined_players(state) == 0,
+          key: number_of_table_state(state) == 0,
           id: id
         }
 
-        joined_players =
-          Map.put(state.joined_players, secret_token, %{
+        table_state =
+          Map.put(state.table_state, secret_token, %{
             rooms: rooms,
-            opened_rooms: [],
-            id: number_of_joined_players(state) + 1
+            id: number_of_table_state(state) + 1
           })
 
         {:reply, {:ok, reply},
          %{
            state
            | remaining_roles: remaining_roles,
-             joined_players: joined_players,
+             table_state: table_state,
              remaining_rooms: remaining_rooms,
              remaining_ids: remaining_ids
          }}
@@ -81,11 +80,12 @@ defmodule Schreckens.Game do
 
   @impl true
   def handle_call({:rooms_for, secret_token}, _from, state) do
-    case Map.get(state.joined_players, secret_token) do
-      %{rooms: rooms} ->
-        {:reply, {:ok, rooms}, state}
-
-      nil ->
+    with %{rooms: rooms} <- Map.get(state.table_state, secret_token),
+         public_rooms <- Enum.map(rooms, fn {__, room_type} -> room_type end),
+         public_rooms = Enum.sort(public_rooms) do
+      {:reply, {:ok, public_rooms}, state}
+    else
+      _ ->
         {:reply, :error, state}
     end
   end
@@ -127,31 +127,34 @@ defmodule Schreckens.Game do
         state = %{
           state
           | player_id_with_key: target_player_id,
-            joined_players: update_joined_players(target_player_id, state)
+            table_state: update_table_state(target_player_id, state)
         }
 
         {:reply, :ok, state}
     end
   end
 
-  defp update_joined_players(target_player_id, state) do
+  defp update_table_state(target_player_id, state) do
     secret_token_for_target = find_secret_token_for_player_id(target_player_id, state)
-    joined_player_state = state.joined_players[secret_token_for_target]
-    %{rooms: [opening_room | closed_rooms], opened_rooms: opened_rooms} = joined_player_state
+    joined_player_state = state.table_state[secret_token_for_target]
+    %{rooms: rooms} = joined_player_state
 
-    opened_rooms = [opening_room | opened_rooms]
+    {rooms, _} =
+      Enum.map_reduce(rooms, true, fn
+        {:closed, game_state}, true -> {{:open, game_state}, false}
+        room, should_change -> {room, should_change}
+      end)
 
-    Map.put(state.joined_players, secret_token_for_target, %{
+    Map.put(state.table_state, secret_token_for_target, %{
       joined_player_state
-      | rooms: closed_rooms,
-        opened_rooms: opened_rooms
+      | rooms: rooms
     })
   end
 
   defp all_players_joined?(state),
-    do: number_of_joined_players(state) == state.player_count
+    do: number_of_table_state(state) == state.player_count
 
-  defp number_of_joined_players(state), do: Enum.count(Map.keys(state.joined_players))
+  defp number_of_table_state(state), do: Enum.count(Map.keys(state.table_state))
 
   defp you_have_the_key?(secret_token, state) do
     with {:ok, id} <- player_id(secret_token, state) do
@@ -166,7 +169,7 @@ defmodule Schreckens.Game do
   end
 
   defp player_id(secret_token, state) do
-    case Map.get(state.joined_players, secret_token) do
+    case Map.get(state.table_state, secret_token) do
       %{id: id} -> {:ok, id}
       _ -> :error
     end
@@ -174,7 +177,7 @@ defmodule Schreckens.Game do
 
   def find_secret_token_for_player_id(player_id, state) do
     {secret_token, _} =
-      state.joined_players
+      state.table_state
       |> Map.to_list()
       |> Enum.find(fn
         {_, %{id: ^player_id}} -> true
@@ -184,12 +187,20 @@ defmodule Schreckens.Game do
     secret_token
   end
 
-  defp rooms_per_player_on_table(%{joined_players: joined_players}) do
-    joined_players
+  defp rooms_per_player_on_table(%{table_state: table_state}) do
+    table_state
     |> Map.to_list()
-    |> Enum.map(fn {_, %{id: id, rooms: closed_rooms, opened_rooms: opened_rooms}} ->
-      closed_values = Enum.map(closed_rooms, fn _ -> "closed" end)
-      {id, opened_rooms ++ closed_values}
+    |> Enum.map(fn {_, %{id: id, rooms: rooms}} ->
+      public_rooms =
+        Enum.map(
+          rooms,
+          fn
+            {:closed, _} -> "closed"
+            {:open, room_type} -> room_type
+          end
+        )
+
+      {id, public_rooms}
     end)
     |> Map.new()
   end
@@ -201,5 +212,6 @@ defmodule Schreckens.Game do
     do:
       [for(_ <- 1..8, do: :empty), for(_ <- 1..5, do: :treasure), for(_ <- 1..2, do: :trap)]
       |> Enum.flat_map(& &1)
+      |> Enum.map(fn card_type -> {:closed, card_type} end)
       |> Enum.shuffle()
 end
