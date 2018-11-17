@@ -124,25 +124,28 @@ defmodule Schreckens.Game do
         {:reply, :error, state}
 
       true ->
-        secret_token_for_target = find_secret_token_for_player_id(target_player_id, state)
-        joined_player_state = state.joined_players[secret_token_for_target]
-        %{rooms: [opening_room | closed_rooms], opened_rooms: opened_rooms} = joined_player_state
-
-        opened_rooms = [opening_room | opened_rooms]
-
         state = %{
           state
           | player_id_with_key: target_player_id,
-            joined_players:
-              Map.put(state.joined_players, secret_token_for_target, %{
-                joined_player_state
-                | rooms: closed_rooms,
-                  opened_rooms: opened_rooms
-              })
+            joined_players: update_joined_players(target_player_id, state)
         }
 
         {:reply, :ok, state}
     end
+  end
+
+  defp update_joined_players(target_player_id, state) do
+    secret_token_for_target = find_secret_token_for_player_id(target_player_id, state)
+    joined_player_state = state.joined_players[secret_token_for_target]
+    %{rooms: [opening_room | closed_rooms], opened_rooms: opened_rooms} = joined_player_state
+
+    opened_rooms = [opening_room | opened_rooms]
+
+    Map.put(state.joined_players, secret_token_for_target, %{
+      joined_player_state
+      | rooms: closed_rooms,
+        opened_rooms: opened_rooms
+    })
   end
 
   defp all_players_joined?(state),
