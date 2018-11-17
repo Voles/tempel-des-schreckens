@@ -64,6 +64,7 @@ defmodule Schreckens.Game do
         joined_players =
           Map.put(state.joined_players, secret_token, %{
             rooms: rooms,
+            opened_rooms: [],
             id: number_of_joined_players(state) + 1
           })
 
@@ -94,12 +95,8 @@ defmodule Schreckens.Game do
     cond do
       all_players_joined?(state) ->
         table = %{
-          key: 1,
-          rooms: %{
-            1 => ["closed", "closed", "closed", "closed", "closed"],
-            2 => ["closed", "closed", "closed", "closed", "closed"],
-            3 => ["closed", "closed", "closed", "closed", "closed"]
-          },
+          key: state.player_id_with_key,
+          rooms: rooms_per_player_on_table(state),
           found: %{
             traps: 0,
             treasure: 0,
@@ -127,6 +124,23 @@ defmodule Schreckens.Game do
         {:reply, :error, state}
 
       true ->
+        secret_token_for_target = find_secret_token_for_player_id(target_player_id, state)
+        joined_player_state = state.joined_players[secret_token_for_target]
+        %{rooms: [opening_room | closed_rooms], opened_rooms: opened_rooms} = joined_player_state
+
+        opened_rooms = [opening_room | opened_rooms]
+
+        state = %{
+          state
+          | player_id_with_key: target_player_id,
+            joined_players:
+              Map.put(state.joined_players, secret_token_for_target, %{
+                joined_player_state
+                | rooms: closed_rooms,
+                  opened_rooms: opened_rooms
+              })
+        }
+
         {:reply, :ok, state}
     end
   end
@@ -155,6 +169,28 @@ defmodule Schreckens.Game do
     end
   end
 
+  def find_secret_token_for_player_id(player_id, state) do
+    {secret_token, _} =
+      state.joined_players
+      |> Map.to_list()
+      |> Enum.find(fn
+        {_, %{id: ^player_id}} -> true
+        _ -> false
+      end)
+
+    secret_token
+  end
+
+  defp rooms_per_player_on_table(%{joined_players: joined_players}) do
+    joined_players
+    |> Map.to_list()
+    |> Enum.map(fn {_, %{id: id, rooms: closed_rooms, opened_rooms: opened_rooms}} ->
+      closed_values = Enum.map(closed_rooms, fn _ -> "closed" end)
+      {id, opened_rooms ++ closed_values}
+    end)
+    |> Map.new()
+  end
+
   defp shuffle_starting_roles(3),
     do: [:guardian, :guardian, :adventurer, :adventurer] |> Enum.shuffle()
 
@@ -162,4 +198,5 @@ defmodule Schreckens.Game do
     do:
       [for(_ <- 1..8, do: :empty), for(_ <- 1..5, do: :treasure), for(_ <- 1..2, do: :trap)]
       |> Enum.flat_map(& &1)
+      |> Enum.shuffle()
 end
