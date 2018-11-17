@@ -10,7 +10,7 @@ public class PlayerIdsTest {
 
     @Test
     public void constructor_CreatesPlayerIds1To8() {
-        final PlayerIds playerIds = new PlayerIds();
+        final PlayerIds playerIds = new PlayerIds(8);
 
         assertThat(playerIds.asList())
                 .containsOnly(playerId(1),
@@ -20,22 +20,20 @@ public class PlayerIdsTest {
                         playerId(5),
                         playerId(6),
                         playerId(7),
-                        playerId(8),
-                        playerId(9),
-                        playerId(10)
+                        playerId(8)
                         );
     }
 
     @Test
     public void next_FreshPlayerIds_ReturnsPlayer1() {
-        final PlayerIds playerIds = new PlayerIds();
+        final PlayerIds playerIds = new PlayerIds(3);
 
         assertThat(playerIds.next()).isEqualTo(playerId(1));
     }
 
     @Test
     public void next_ConsumedThreePlayerIds_ReturnsPlayer4() {
-        final PlayerIds playerIds = new PlayerIds();
+        final PlayerIds playerIds = new PlayerIds(4);
 
         assertThat(playerIds.next()).isEqualTo(playerId(1));
         assertThat(playerIds.next()).isEqualTo(playerId(2));
@@ -45,7 +43,7 @@ public class PlayerIdsTest {
 
     @Test
     public void next_10PlayersConsumed_ThrowsException() {
-        final PlayerIds playerIds = new PlayerIds();
+        final PlayerIds playerIds = new PlayerIds(10);
         playerIds.next();
         playerIds.next();
         playerIds.next();

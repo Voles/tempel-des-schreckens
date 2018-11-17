@@ -15,11 +15,11 @@ import static be.socrates.tempeldesschreckens.domain.player.Player.PlayerBuilder
 
 public class Game {
 
-    private PlayerIds playerIds = new PlayerIds();
     private List<Room> rooms;
     private List<Role> roles;
     private Integer playerCount;
-    private List<Player> players;
+    private List<Player> players = new ArrayList<>();
+    private PlayerIds playerIds;
 
     private Game(final int playerCount) {
         this.playerCount = playerCount;
@@ -29,12 +29,16 @@ public class Game {
     }
 
     private void initializePlayers() {
-        final PlayerIds playerIds = new PlayerIds();
+        playerIds = new PlayerIds(playerCount);
         Collections.shuffle(roles);
         roles.subList(0, playerCount)
                 .stream()
                 .map(role -> player().withRole(role).withPlayerId(playerIds.next()).build());
-        players = new ArrayList<>();
+        int iterIndex = 0;
+        for (PlayerId playerId : playerIds.asList()) {
+            players.add(new Player(playerId,roles.get(iterIndex), new ArrayList<>()));
+        }
+
     }
 
     private void initializeRoles() {

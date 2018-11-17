@@ -12,19 +12,11 @@ import static be.socrates.tempeldesschreckens.domain.player.PlayerId.playerId;
 class PlayerIds {
     private Queue<PlayerId> availableIds;
 
-    PlayerIds() {
+    PlayerIds(Integer playerCount) {
         availableIds = new ConcurrentLinkedDeque<>();
-        this.availableIds.addAll(Arrays.asList(playerId(1),
-                playerId(2),
-                playerId(3),
-                playerId(4),
-                playerId(5),
-                playerId(6),
-                playerId(7),
-                playerId(8),
-                playerId(9),
-                playerId(10)
-                ));
+        for (int i = 1;i<=playerCount;i++) {
+            this.availableIds.add(playerId(i));
+        }
     }
 
     Queue<PlayerId> asList() {
