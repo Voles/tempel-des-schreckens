@@ -9,6 +9,7 @@ defmodule SchreckensWeb.Router do
     pipe_through :api
 
     post "/start", GameController, :start
+    post "/stop", GameController, :stop
     post "/join", GameController, :join
     get "/my-rooms/:secret_token", GameController, :my_rooms
     get "/table", GameController, :table

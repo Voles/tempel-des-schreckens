@@ -9,6 +9,13 @@
     }
   },
 
+  "/stop": {
+    "type": "post",
+    "response": {
+      "message": "OK" / "ERROR"
+    }
+  },
+
   "/join": {
     "type": "post",
     "request": {

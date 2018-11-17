@@ -6,9 +6,29 @@ defmodule SchreckensWeb.GameControllerTest do
     assert "ok" = json_response(conn, 200)
   end
 
+  test "POST /start a second time", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+    conn = post(conn, "/start", %{playerCount: 3})
+    assert "error" = json_response(conn, 400)
+  end
+
   test "POST /start with incorrect arguments", %{conn: conn} do
     conn = post(conn, "/start", %{playerCount: 11})
     assert "error" = json_response(conn, 400)
+  end
+
+  test "POST /stop a not started game", %{conn: conn} do
+    conn = post(conn, "/stop")
+    assert "error" = json_response(conn, 404)
+  end
+
+  test "POST /stop stops a started game", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+    conn = post(conn, "/stop")
+    assert "ok" = json_response(conn, 200)
+
+    conn = post(conn, "/start", %{playerCount: 3})
+    assert "ok" = json_response(conn, 200)
   end
 
   test "POST /join without a started game", %{conn: conn} do

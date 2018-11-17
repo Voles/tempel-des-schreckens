@@ -7,12 +7,21 @@ defmodule SchreckensWeb.GameController do
 
   def start(conn, %{"playerCount" => player_count})
       when player_count >= 3 and player_count <= 10 do
-    {:ok, _pid} = Game.start_link(player_count: player_count)
-
-    json(conn, "ok")
+    with {:ok, _pid} <- Game.start_link(player_count: player_count) do
+      json(conn, "ok")
+    else
+      {:error, {:already_started, _}} -> error(conn)
+    end
   end
 
   def start(conn, _param), do: error(conn)
+
+  def stop(conn, _params) do
+    with {:ok, _game} <- find_game() do
+      :ok = GenServer.stop(Game)
+      json(conn, "ok")
+    end
+  end
 
   def join(conn, %{"secretToken" => secret_token}) when is_binary(secret_token) do
     with {:ok, _game} <- find_game() do
