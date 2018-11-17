@@ -5,16 +5,7 @@ defmodule Schreckens.Game do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  def init(player_count: player_count) do
-    {:ok,
-     %{
-       player_count: player_count,
-       remaining_ids: 1..player_count |> Enum.to_list(),
-       remaining_cards: starting_roles(player_count) |> Enum.shuffle(),
-       remaining_rooms: starting_rooms(player_count) |> Enum.shuffle(),
-       joined_players: %{}
-     }}
-  end
+  # PUBLIC API
 
   def join_state(secret_token) do
     GenServer.call(__MODULE__, {:join_state, secret_token})
@@ -32,9 +23,23 @@ defmodule Schreckens.Game do
     GenServer.call(__MODULE__, {:open, secret_token, target_player_id})
   end
 
+  # SERVER IMPLEMENTATION
+
+  @impl true
+  def init(player_count: player_count) do
+    {:ok,
+     %{
+       player_count: player_count,
+       remaining_ids: 1..player_count |> Enum.to_list(),
+       remaining_cards: starting_roles(player_count) |> Enum.shuffle(),
+       remaining_rooms: starting_rooms(player_count) |> Enum.shuffle(),
+       joined_players: %{}
+     }}
+  end
+
   def handle_call({:join_state, secret_token}, _from, state) do
     cond do
-      Enum.count(Map.keys(state.joined_players)) == state.player_count ->
+      all_players_joined?(state) ->
         {:reply, :error, state}
 
       Map.has_key?(state.joined_players, secret_token) ->
@@ -82,7 +87,7 @@ defmodule Schreckens.Game do
 
   def handle_call(:table, _from, state) do
     cond do
-      Enum.count(Map.keys(state.joined_players)) == state.player_count ->
+      all_players_joined?(state) ->
         table = %{
           key: 1,
           rooms: %{
@@ -106,7 +111,7 @@ defmodule Schreckens.Game do
 
   def handle_call({:open, secret_token, target_player_id}, _from, state) do
     cond do
-      Enum.count(Map.keys(state.joined_players)) == state.player_count ->
+      all_players_joined?(state) ->
         {:reply, :ok, state}
 
       true ->
@@ -114,9 +119,8 @@ defmodule Schreckens.Game do
     end
   end
 
-  defp all_players_joined?(state) do
-    Enum.count(Map.keys(state.joined_players)) == state.player_count
-  end
+  defp all_players_joined?(state),
+    do: Enum.count(Map.keys(state.joined_players)) == state.player_count
 
   defp starting_roles(3), do: [:guardian, :guardian, :adventurer, :adventurer]
 
