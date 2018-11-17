@@ -16,7 +16,9 @@
     },
     "response": {
       "guardian": bool,
-      playerIds: [  ]
+      key: bool,
+      playerIds: [  ],
+      id: int
     }
   },
 
