@@ -10,8 +10,12 @@ use Mix.Config
 # which you should run after static files are built and
 # before starting your production server.
 config :schreckens, SchreckensWeb.Endpoint,
+  load_from_system_env: false,
   http: [:inet6, port: System.get_env("PORT") || 4000],
-  url: [host: "example.com", port: 80],
+  url: [host: "localhost", port: 4000],
+  server: true,
+  root: ".",
+  check_origin: false,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production
