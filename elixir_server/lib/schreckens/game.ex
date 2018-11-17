@@ -134,27 +134,15 @@ defmodule Schreckens.Game do
   end
 
   defp update_for_end_of_a_round(state) do
-    all_rooms =
-      state.dealt_rooms
-      |> Map.to_list()
-      |> Enum.map(fn {_, rooms} -> rooms end)
-      |> Enum.flat_map(& &1)
+    open_rooms = open_rooms_in_play(state)
 
-    {open_rooms, _closed_rooms} =
-      Enum.split_with(all_rooms, fn
-        {:open, _} -> true
-        _ -> false
-      end)
-
-    number_of_open_rooms = Enum.count(open_rooms)
-
-    if number_of_open_rooms == number_of_players_joined(state) do
+    if Enum.count(open_rooms) == number_of_players_joined(state) do
       found =
         Enum.reduce(open_rooms, state.found_rooms, fn {_, game_state}, found ->
           Map.update(found, game_state, 1, &(&1 + 1))
         end)
 
-      %{state | found_rooms: found}
+      %{state | found_rooms: found, dealt_rooms: deal_rooms(found, state.player_count)}
     else
       state
     end
@@ -245,6 +233,22 @@ defmodule Schreckens.Game do
     total_found_rooms = found_rooms |> Map.to_list() |> Enum.map(fn {_, v} -> v end) |> Enum.sum()
 
     div(total_found_rooms, player_count)
+  end
+
+  defp open_rooms_in_play(state) do
+    all_rooms_in_play =
+      state.dealt_rooms
+      |> Map.to_list()
+      |> Enum.map(fn {_, rooms} -> rooms end)
+      |> Enum.flat_map(& &1)
+
+    {open_rooms, _closed_rooms} =
+      Enum.split_with(all_rooms_in_play, fn
+        {:open, _} -> true
+        _ -> false
+      end)
+
+    open_rooms
   end
 
   defp shuffle_starting_roles(3),
