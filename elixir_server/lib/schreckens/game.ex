@@ -34,6 +34,11 @@ defmodule Schreckens.Game do
        remaining_roles: shuffle_starting_roles(player_count),
        remaining_rooms: shuffle_starting_rooms(player_count),
        table_state: %{},
+       found_rooms: %{
+         empty: 0,
+         treasure: 0,
+         trap: 0
+       },
        player_id_with_key: 1
      }}
   end
@@ -57,14 +62,14 @@ defmodule Schreckens.Game do
         reply = %{
           playerIds: 1..state.player_count |> Enum.to_list(),
           guardian: is_guardian,
-          key: number_of_table_state(state) == 0,
+          key: number_of_players_joined(state) == 0,
           id: id
         }
 
         table_state =
           Map.put(state.table_state, secret_token, %{
             rooms: rooms,
-            id: number_of_table_state(state) + 1
+            id: number_of_players_joined(state) + 1
           })
 
         {:reply, {:ok, reply},
@@ -97,11 +102,7 @@ defmodule Schreckens.Game do
         table = %{
           key: state.player_id_with_key,
           rooms: rooms_per_player_on_table(state),
-          found: %{
-            traps: 0,
-            treasure: 0,
-            empty: 0
-          }
+          found: state.found_rooms
         }
 
         {:reply, {:ok, table}, state}
@@ -124,13 +125,42 @@ defmodule Schreckens.Game do
         {:reply, :error, state}
 
       true ->
-        state = %{
-          state
-          | player_id_with_key: target_player_id,
-            table_state: update_table_state(target_player_id, state)
-        }
+        state =
+          %{
+            state
+            | player_id_with_key: target_player_id,
+              table_state: update_table_state(target_player_id, state)
+          }
+          |> update_for_end_of_a_round()
 
         {:reply, :ok, state}
+    end
+  end
+
+  defp update_for_end_of_a_round(state) do
+    all_rooms =
+      state.table_state
+      |> Map.to_list()
+      |> Enum.map(fn {_, %{rooms: rooms}} -> rooms end)
+      |> Enum.flat_map(& &1)
+
+    {open_rooms, _closed_rooms} =
+      Enum.split_with(all_rooms, fn
+        {:open, _} -> true
+        _ -> false
+      end)
+
+    number_of_open_rooms = Enum.count(open_rooms)
+
+    if number_of_open_rooms == number_of_players_joined(state) do
+      found =
+        Enum.reduce(open_rooms, state.found_rooms, fn {_, game_state}, found ->
+          Map.update(found, game_state, 1, &(&1 + 1))
+        end)
+
+      %{state | found_rooms: found}
+    else
+      state
     end
   end
 
@@ -152,9 +182,9 @@ defmodule Schreckens.Game do
   end
 
   defp all_players_joined?(state),
-    do: number_of_table_state(state) == state.player_count
+    do: number_of_players_joined(state) == state.player_count
 
-  defp number_of_table_state(state), do: Enum.count(Map.keys(state.table_state))
+  defp number_of_players_joined(state), do: Enum.count(Map.keys(state.table_state))
 
   defp you_have_the_key?(secret_token, state) do
     with {:ok, id} <- player_id(secret_token, state) do
