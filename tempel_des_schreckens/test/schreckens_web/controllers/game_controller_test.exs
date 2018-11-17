@@ -183,17 +183,17 @@ defmodule SchreckensWeb.GameControllerTest do
     assert json_response(response, 200)
   end
 
-  #
-  # test "POST /open you can't open your own door", %{conn: conn} do
-  #   conn = post(conn, "/start", %{playerCount: 3})
-  #   post(conn, "/join", %{secretToken: "secret1"})
-  #   post(conn, "/join", %{secretToken: "secret2"})
-  #   post(conn, "/join", %{secretToken: "secret3"})
-  #
-  #   response = post(conn, "/open", %{secretToken: "secret1", targetPlayerId: "1"})
-  #
-  #   assert "error" = json_response(response, 400)
-  # end
+  test "POST /open you can't open your own door", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+    post(conn, "/join", %{secretToken: "secret1"})
+    post(conn, "/join", %{secretToken: "secret2"})
+    post(conn, "/join", %{secretToken: "secret3"})
+
+    response = post(conn, "/open", %{secretToken: "secret1", targetPlayerId: "1"})
+
+    assert "error" = json_response(response, 400)
+  end
+
   #
   # test "POST /open a door", %{conn: conn} do
   #   conn = post(conn, "/start", %{playerCount: 3})

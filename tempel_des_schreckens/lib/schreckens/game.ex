@@ -115,12 +115,15 @@ defmodule Schreckens.Game do
   end
 
   @impl true
-  def handle_call({:open, secret_token, _target_player_id}, _from, state) do
+  def handle_call({:open, secret_token, target_player_id}, _from, state) do
     cond do
       not all_players_joined?(state) ->
         {:reply, :error, state}
 
       not you_have_the_key?(secret_token, state) ->
+        {:reply, :error, state}
+
+      you_try_to_open_your_own_room?(secret_token, target_player_id, state) ->
         {:reply, :error, state}
 
       true ->
@@ -136,8 +139,13 @@ defmodule Schreckens.Game do
   defp you_have_the_key?(secret_token, state) do
     with {:ok, id} <- player_id(secret_token, state) do
       state.player_id_with_key == id
-    else
-      _ -> false
+    end
+  end
+
+  defp you_try_to_open_your_own_room?(secret_token, target_player_id, state) do
+    with {:ok, id} <- player_id(secret_token, state),
+         {target_player_id, ""} <- Integer.parse(target_player_id) do
+      id == target_player_id
     end
   end
 
