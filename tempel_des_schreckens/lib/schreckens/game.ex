@@ -31,12 +31,13 @@ defmodule Schreckens.Game do
      %{
        player_count: player_count,
        remaining_ids: 1..player_count |> Enum.to_list(),
-       remaining_cards: starting_roles(player_count) |> Enum.shuffle(),
-       remaining_rooms: starting_rooms(player_count) |> Enum.shuffle(),
+       remaining_roles: shuffle_starting_roles(player_count),
+       remaining_rooms: shuffle_starting_rooms(player_count),
        joined_players: %{}
      }}
   end
 
+  @impl true
   def handle_call({:join_state, secret_token}, _from, state) do
     cond do
       all_players_joined?(state) ->
@@ -46,7 +47,7 @@ defmodule Schreckens.Game do
         {:reply, :error, state}
 
       true ->
-        [role | remaining] = state.remaining_cards
+        [role | remaining_roles] = state.remaining_roles
         [id | remaining_ids] = state.remaining_ids
         {rooms, remaining_rooms} = Enum.split(state.remaining_rooms, 5)
 
@@ -67,7 +68,7 @@ defmodule Schreckens.Game do
         {:reply, {:ok, reply},
          %{
            state
-           | remaining_cards: remaining,
+           | remaining_roles: remaining_roles,
              joined_players: joined_players,
              remaining_rooms: remaining_rooms,
              remaining_ids: remaining_ids
@@ -75,6 +76,7 @@ defmodule Schreckens.Game do
     end
   end
 
+  @impl true
   def handle_call({:rooms_for, secret_token}, _from, state) do
     case Map.get(state.joined_players, secret_token) do
       %{rooms: rooms} ->
@@ -85,6 +87,7 @@ defmodule Schreckens.Game do
     end
   end
 
+  @impl true
   def handle_call(:table, _from, state) do
     cond do
       all_players_joined?(state) ->
@@ -109,7 +112,8 @@ defmodule Schreckens.Game do
     end
   end
 
-  def handle_call({:open, secret_token, target_player_id}, _from, state) do
+  @impl true
+  def handle_call({:open, _secret_token, _target_player_id}, _from, state) do
     cond do
       all_players_joined?(state) ->
         {:reply, :ok, state}
@@ -122,9 +126,10 @@ defmodule Schreckens.Game do
   defp all_players_joined?(state),
     do: Enum.count(Map.keys(state.joined_players)) == state.player_count
 
-  defp starting_roles(3), do: [:guardian, :guardian, :adventurer, :adventurer]
+  defp shuffle_starting_roles(3),
+    do: [:guardian, :guardian, :adventurer, :adventurer] |> Enum.shuffle()
 
-  defp starting_rooms(3),
+  defp shuffle_starting_rooms(3),
     do:
       [for(_ <- 1..8, do: :empty), for(_ <- 1..5, do: :treasure), for(_ <- 1..2, do: :trap)]
       |> Enum.flat_map(& &1)
