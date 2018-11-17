@@ -172,7 +172,7 @@ defmodule SchreckensWeb.GameControllerTest do
     assert "error" = json_response(response, 400)
   end
 
-  test "POST /open you can open a door if you don have the key", %{conn: conn} do
+  test "POST /open you can open a door if you do have the key", %{conn: conn} do
     conn = post(conn, "/start", %{playerCount: 3})
     post(conn, "/join", %{secretToken: "secret1"})
     post(conn, "/join", %{secretToken: "secret2"})
@@ -183,7 +183,7 @@ defmodule SchreckensWeb.GameControllerTest do
     assert json_response(response, 200)
   end
 
-  test "POST /open you can't open your own door", %{conn: conn} do
+  test "POST /open you can't open your own doors", %{conn: conn} do
     conn = post(conn, "/start", %{playerCount: 3})
     post(conn, "/join", %{secretToken: "secret1"})
     post(conn, "/join", %{secretToken: "secret2"})
@@ -194,7 +194,7 @@ defmodule SchreckensWeb.GameControllerTest do
     assert "error" = json_response(response, 400)
   end
 
-  test "POST /open a door", %{conn: conn} do
+  test "POST /open should reveal a room", %{conn: conn} do
     conn = post(conn, "/start", %{playerCount: 3})
     post(conn, "/join", %{secretToken: "secret1"})
     post(conn, "/join", %{secretToken: "secret2"})
@@ -207,7 +207,7 @@ defmodule SchreckensWeb.GameControllerTest do
     response = get(conn, "/table")
 
     assert %{
-             "key" => 1,
+             "key" => 2,
              "rooms" => %{
                "1" => ["closed", "closed", "closed", "closed", "closed"],
                "2" => rooms,

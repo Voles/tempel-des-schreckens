@@ -46,7 +46,8 @@ defmodule SchreckensWeb.GameController do
   end
 
   def open(conn, %{"secretToken" => secret_token, "targetPlayerId" => target_player_id}) do
-    with {:ok, _game} <- find_game() do
+    with {:ok, _game} <- find_game(),
+         {target_player_id, ""} <- Integer.parse(target_player_id) do
       case Game.open(secret_token, target_player_id) do
         :ok -> json(conn, "ok")
         :error -> error(conn)

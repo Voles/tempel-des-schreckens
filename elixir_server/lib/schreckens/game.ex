@@ -19,7 +19,7 @@ defmodule Schreckens.Game do
     GenServer.call(__MODULE__, :table)
   end
 
-  def open(secret_token, target_player_id) do
+  def open(secret_token, target_player_id) when is_integer(target_player_id) do
     GenServer.call(__MODULE__, {:open, secret_token, target_player_id})
   end
 
@@ -143,8 +143,7 @@ defmodule Schreckens.Game do
   end
 
   defp you_try_to_open_your_own_room?(secret_token, target_player_id, state) do
-    with {:ok, id} <- player_id(secret_token, state),
-         {target_player_id, ""} <- Integer.parse(target_player_id) do
+    with {:ok, id} <- player_id(secret_token, state) do
       id == target_player_id
     end
   end
