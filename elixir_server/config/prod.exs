@@ -16,7 +16,8 @@ config :schreckens, SchreckensWeb.Endpoint,
   server: true,
   root: ".",
   check_origin: false,
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  secret_key_base: "WYtY4uwfG0y7q2Mhy/rMQK+Ht+PHtpg6S+vNWe28DcrZKQUxoZHplm61V8ieS15K"
 
 # Do not print debug messages in production
 config :logger, level: :info
@@ -72,4 +73,3 @@ config :logger, level: :info
 
 # Finally import the config/prod.secret.exs which should be versioned
 # separately.
-import_config "prod.secret.exs"
