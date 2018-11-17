@@ -33,7 +33,8 @@ defmodule Schreckens.Game do
        remaining_ids: 1..player_count |> Enum.to_list(),
        remaining_roles: shuffle_starting_roles(player_count),
        remaining_rooms: shuffle_starting_rooms(player_count),
-       joined_players: %{}
+       joined_players: %{},
+       player_id_with_key: 1
      }}
   end
 
@@ -56,13 +57,14 @@ defmodule Schreckens.Game do
         reply = %{
           playerIds: 1..state.player_count |> Enum.to_list(),
           guardian: is_guardian,
-          key: Enum.count(Map.keys(state.joined_players)) == 0,
+          key: number_of_joined_players(state) == 0,
           id: id
         }
 
         joined_players =
           Map.put(state.joined_players, secret_token, %{
-            rooms: rooms
+            rooms: rooms,
+            id: number_of_joined_players(state) + 1
           })
 
         {:reply, {:ok, reply},
@@ -113,18 +115,38 @@ defmodule Schreckens.Game do
   end
 
   @impl true
-  def handle_call({:open, _secret_token, _target_player_id}, _from, state) do
+  def handle_call({:open, secret_token, _target_player_id}, _from, state) do
     cond do
-      all_players_joined?(state) ->
-        {:reply, :ok, state}
+      not all_players_joined?(state) ->
+        {:reply, :error, state}
+
+      not you_have_the_key?(secret_token, state) ->
+        {:reply, :error, state}
 
       true ->
-        {:reply, :error, state}
+        {:reply, :ok, state}
     end
   end
 
   defp all_players_joined?(state),
-    do: Enum.count(Map.keys(state.joined_players)) == state.player_count
+    do: number_of_joined_players(state) == state.player_count
+
+  defp number_of_joined_players(state), do: Enum.count(Map.keys(state.joined_players))
+
+  defp you_have_the_key?(secret_token, state) do
+    with {:ok, id} <- player_id(secret_token, state) do
+      state.player_id_with_key == id
+    else
+      _ -> false
+    end
+  end
+
+  defp player_id(secret_token, state) do
+    case Map.get(state.joined_players, secret_token) do
+      %{id: id} -> {:ok, id}
+      _ -> :error
+    end
+  end
 
   defp shuffle_starting_roles(3),
     do: [:guardian, :guardian, :adventurer, :adventurer] |> Enum.shuffle()
