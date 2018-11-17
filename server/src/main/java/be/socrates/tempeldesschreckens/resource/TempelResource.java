@@ -24,9 +24,9 @@ public class TempelResource {
         return ResponseEntity.ok(game.newPlayer(identification.getSecretToken()));
     }
 
-    @GetMapping("/my-rooms/{secretToken}")
+    @GetMapping("myrooms/")
     public ResponseEntity myRooms(@RequestParam("secretToken") String secretToken) {
-        return null;
+        return ResponseEntity.ok("Needs implementation");
     }
 
     @GetMapping("/table")
