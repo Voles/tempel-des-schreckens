@@ -220,13 +220,79 @@ defmodule SchreckensWeb.GameControllerTest do
              }
            } = json_response(response, 200)
 
-    [opened_room] =
+    assert_number_of_opened_rooms(rooms, 1)
+  end
+
+  test "POST /open should reveal another room", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+    post(conn, "/join", %{secretToken: "secret1"})
+    post(conn, "/join", %{secretToken: "secret2"})
+    post(conn, "/join", %{secretToken: "secret3"})
+
+    post(conn, "/open", %{secretToken: "secret1", targetPlayerId: "2"})
+    post(conn, "/open", %{secretToken: "secret2", targetPlayerId: "3"})
+
+    response = get(conn, "/table")
+
+    assert %{
+             "key" => 3,
+             "rooms" => %{
+               "1" => ["closed", "closed", "closed", "closed", "closed"],
+               "2" => rooms2,
+               "3" => rooms3
+             },
+             "found" => %{
+               "traps" => 0,
+               "treasure" => 0,
+               "empty" => 0
+             }
+           } = json_response(response, 200)
+
+    assert_number_of_opened_rooms(rooms2, 1)
+    assert_number_of_opened_rooms(rooms3, 1)
+  end
+
+  test "POST /open for last door of round", %{conn: conn} do
+    conn = post(conn, "/start", %{playerCount: 3})
+    post(conn, "/join", %{secretToken: "secret1"})
+    post(conn, "/join", %{secretToken: "secret2"})
+    post(conn, "/join", %{secretToken: "secret3"})
+
+    post(conn, "/open", %{secretToken: "secret1", targetPlayerId: "2"})
+    post(conn, "/open", %{secretToken: "secret2", targetPlayerId: "3"})
+    post(conn, "/open", %{secretToken: "secret3", targetPlayerId: "2"})
+
+    response = get(conn, "/table")
+
+    assert %{
+             "key" => 2,
+             "rooms" => %{
+               "1" => ["closed", "closed", "closed", "closed"],
+               "2" => ["closed", "closed", "closed", "closed"],
+               "3" => ["closed", "closed", "closed", "closed"]
+             },
+             "found" => %{
+               "traps" => traps,
+               "treasure" => treasure,
+               "empty" => empty
+             }
+           } = json_response(response, 200)
+
+    assert 3 = traps + treasure + empty
+  end
+
+  defp assert_number_of_opened_rooms(rooms, number) do
+    opened_rooms =
       rooms
       |> Enum.filter(fn
         "closed" -> false
         _ -> true
       end)
 
-    assert opened_room in ["empty", "trap", "treasure"]
+    assert number == Enum.count(opened_rooms)
+
+    Enum.all?(opened_rooms, fn opened_room ->
+      assert opened_room in ["empty", "trap", "treasure"]
+    end)
   end
 end
