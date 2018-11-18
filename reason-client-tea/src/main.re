@@ -27,6 +27,11 @@ type msg =
 let apiJoin = model => {
   let decodeJoined = json =>
     Json.Decode.{guardian: json |> field("guardian", bool)};
+    let body = {
+      let dict = Js.Dict.empty ()
+      Js.Dict.set(dict, "secretToken", model.secretToken);
+      dict
+    };
   Js.Promise.(
     Fetch.fetchWithInit(
       "https://6f819b47.ngrok.io/join",
