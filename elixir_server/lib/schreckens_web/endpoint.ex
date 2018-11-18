@@ -42,5 +42,6 @@ defmodule SchreckensWeb.Endpoint do
     key: "_schreckens_key",
     signing_salt: "15N4XU8i"
 
+  plug CORSPlug
   plug SchreckensWeb.Router
 end
