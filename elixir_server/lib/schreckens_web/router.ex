@@ -15,4 +15,12 @@ defmodule SchreckensWeb.Router do
     get "/table", GameController, :table
     post "/open", GameController, :open
   end
+
+  scope "/" do
+    forward "/graphiql",
+            Absinthe.Plug.GraphiQL,
+            schema: SchreckensWeb.Schema,
+            interface: :simple,
+            json_codec: Jason
+  end
 end

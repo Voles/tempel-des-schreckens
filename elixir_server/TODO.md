@@ -6,4 +6,15 @@
 
 ```iex
 > Absinthe.Schema.lookup_type(SchreckensWeb.Schema, "Game")
+> Absinthe.Schema.lookup_type(SchreckensWeb.Schema, "RootQueryType")
+```
+
+```graphql
+{
+  lobby {
+    games {
+      id
+    }
+  }
+}
 ```
