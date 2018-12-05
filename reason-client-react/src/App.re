@@ -1,8 +1,4 @@
 /* The new stdlib additions */
-open Belt;
-
-type dog = string;
-
 type state =
   | WaitingToStartGame
   | GameStarted
@@ -15,6 +11,51 @@ type action =
 
 module Decode = {
   let start = json: string => Json.Decode.string(json);
+};
+
+module Board = {
+  let component = ReasonReact.statelessComponent("Board");
+  let make = _children => {
+    ...component,
+    render: _self =>
+      <div className="board">
+        <div className="player">
+          <div className="card card1"></div>
+          <div className="card card2"></div>
+          <div className="card card3"></div>
+          <div className="card card4"></div>
+          <div className="card card5"></div>
+        </div>
+        <div className="player">
+          <div className="card card1"></div>
+          <div className="card card2"></div>
+          <div className="card card3"></div>
+          <div className="card card4"></div>
+          <div className="card card5"></div>
+        </div>
+        <div className="player">
+          <div className="card card1"></div>
+          <div className="card card2"></div>
+          <div className="card card3"></div>
+          <div className="card card4"></div>
+          <div className="card card5"></div>
+        </div>
+        <div className="player">
+          <div className="card card1"></div>
+          <div className="card card2"></div>
+          <div className="card card3"></div>
+          <div className="card card4"></div>
+          <div className="card card5"></div>
+        </div>
+        <div className="player">
+          <div className="card card1"></div>
+          <div className="card card2"></div>
+          <div className="card card3"></div>
+          <div className="card card4"></div>
+          <div className="card card5"></div>
+        </div>
+      </div>,
+  };
 };
 
 let component = ReasonReact.reducerComponent("FetchExample");
@@ -72,6 +113,7 @@ let make = _children => {
         <button onClick=(_event => self.send(StartGame))>
           {ReasonReact.string("Start game")}
         </button>
+        <Board />
       </div>
     | GameStarted => <div> {ReasonReact.string("Game started")} </div>
     | GameStartFailed =>
