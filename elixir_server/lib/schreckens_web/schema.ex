@@ -1,6 +1,9 @@
 defmodule Lobby do
   def games() do
-    [%{id: 1, name: "test", description: "foobar"}]
+    [
+      %{id: 1, name: "test", description: "foobar"},
+      %{id: 2, name: "test2", description: "other discription"}
+    ]
   end
 end
 
